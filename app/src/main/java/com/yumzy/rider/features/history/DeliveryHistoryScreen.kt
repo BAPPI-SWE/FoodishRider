@@ -51,6 +51,7 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
         ).show()
     }
 
+    // Filter orders based on search and date range
     val filteredOrders by remember(searchText, completedOrders, startDate, endDate) {
         derivedStateOf {
             val calendar = Calendar.getInstance()
@@ -95,6 +96,10 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
         }
     }
 
+    // Calculate totals based on the filtered list
+    val totalDeliveries = filteredOrders.size
+    val totalEarnings = filteredOrders.sumOf { it.totalPrice }
+
 
     // This effect fetches the delivered orders for the current rider from Firestore
     LaunchedEffect(key1 = Unit) {
@@ -106,7 +111,6 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
             .addSnapshotListener { snapshot, error ->
                 isLoading = false
                 if (error != null) {
-                    // Handle potential errors, e.g., logging
                     return@addSnapshotListener
                 }
                 snapshot?.let {
@@ -169,27 +173,32 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-            } else if (filteredOrders.isEmpty()) {
+            } else if (completedOrders.isEmpty() && searchText.isBlank()){
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    val emptyText = when {
-                        searchText.isNotBlank() -> "No deliveries found for \"$searchText\""
-                        startDate != null || endDate != null -> "No deliveries found in the selected date range."
-                        else -> "You have no completed deliveries yet."
+                    Text("You have no completed deliveries yet.", color = Color.Gray)
+                }
+            }
+            else {
+                // Show summary only if there are orders to display
+                SummaryCard(
+                    totalDeliveries = totalDeliveries,
+                    totalEarnings = totalEarnings
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (filteredOrders.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        val emptyText = when {
+                            searchText.isNotBlank() -> "No deliveries found for \"$searchText\""
+                            else -> "No deliveries found in the selected date range."
+                        }
+                        Text(emptyText, color = Color.Gray)
                     }
-                    Text(emptyText, color = Color.Gray)
-                }
-            } else {
-                if (searchText.isNotBlank() || startDate != null || endDate != null) {
-                    Text(
-                        text = "Found ${filteredOrders.size} deliveries",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(filteredOrders) { order ->
-                        CompletedDeliveryCard(order = order)
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(filteredOrders) { order ->
+                            CompletedDeliveryCard(order = order)
+                        }
                     }
                 }
             }
@@ -198,8 +207,51 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
 }
 
 /**
- * A card composable to display detailed information about a single completed delivery.
+ * A card to display the summary of total deliveries and earnings.
  */
+@Composable
+fun SummaryCard(totalDeliveries: Int, totalEarnings: Double) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Total Deliveries",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = totalDeliveries.toString(),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Total Earnings",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "৳${"%.2f".format(totalEarnings)}",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+
 @Composable
 fun CompletedDeliveryCard(order: Order) {
     val sdf = remember { SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()) }
