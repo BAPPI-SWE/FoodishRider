@@ -216,7 +216,15 @@ fun OrderRequestCard(order: OrderRequest, onAccept: () -> Unit) {
             Divider()
             Text("Items:", fontWeight = FontWeight.SemiBold)
             order.items.forEach { item ->
-                Text("- ${item["quantity"]} x ${item["itemName"]}")
+                val miniResName = item["miniResName"] as? String
+                val itemName = item["itemName"] as? String ?: "Unknown"
+                val quantity = item["quantity"]
+                val displayText = if (!miniResName.isNullOrBlank()) {
+                    "- $quantity x $itemName ($miniResName)"
+                } else {
+                    "- $quantity x $itemName"
+                }
+                Text(displayText)
             }
             Divider()
             Text("Order Total: ৳${order.totalPrice}", fontWeight = FontWeight.Bold)
@@ -227,4 +235,3 @@ fun OrderRequestCard(order: OrderRequest, onAccept: () -> Unit) {
         }
     }
 }
-

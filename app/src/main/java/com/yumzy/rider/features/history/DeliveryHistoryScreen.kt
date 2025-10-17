@@ -234,7 +234,15 @@ fun CompletedDeliveryCard(order: Order) {
             Text("Items:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Column(modifier = Modifier.padding(start = 16.dp)) {
                 order.items.forEach { item ->
-                    Text("• ${item["quantity"]} x ${item["itemName"]}")
+                    val miniResName = item["miniResName"] as? String
+                    val itemName = item["itemName"] as? String ?: "Unknown"
+                    val quantity = item["quantity"]
+                    val displayText = if (!miniResName.isNullOrBlank()) {
+                        "• $quantity x $itemName ($miniResName)"
+                    } else {
+                        "• $quantity x $itemName"
+                    }
+                    Text(displayText)
                 }
             }
 
@@ -286,4 +294,3 @@ fun InfoRow(icon: ImageVector, title: String, primaryText: String, secondaryText
         }
     }
 }
-
