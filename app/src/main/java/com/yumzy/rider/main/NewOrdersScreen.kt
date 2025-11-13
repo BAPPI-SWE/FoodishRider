@@ -46,7 +46,10 @@ data class OrderRequest(
 )
 
 @Composable
-fun NewOrdersScreen(onAcceptOrder: (orderId: String) -> Unit) {
+fun NewOrdersScreen(
+    onAcceptOrder: (orderId: String) -> Unit,
+    onUpdateOrderStatus: (orderId: String, newStatus: String) -> Unit // Added this
+) {
     var riderProfile by remember { mutableStateOf<RiderProfile?>(null) }
     var availableOrders by remember { mutableStateOf<List<OrderRequest>>(emptyList()) }
     var isAvailable by remember { mutableStateOf(false) }
@@ -156,7 +159,11 @@ fun NewOrdersScreen(onAcceptOrder: (orderId: String) -> Unit) {
             }
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(filteredOrders) { order ->
-                    OrderRequestCard(order = order, onAccept = { onAcceptOrder(order.id) })
+                    OrderRequestCard(
+                        order = order,
+                        onAccept = { onAcceptOrder(order.id) },
+                        onCancel = { onUpdateOrderStatus(order.id, "Cancelled") } // Pass cancel action
+                    )
                 }
             }
         }
@@ -164,7 +171,11 @@ fun NewOrdersScreen(onAcceptOrder: (orderId: String) -> Unit) {
 }
 
 @Composable
-fun OrderRequestCard(order: OrderRequest, onAccept: () -> Unit) {
+fun OrderRequestCard(
+    order: OrderRequest,
+    onAccept: () -> Unit,
+    onCancel: () -> Unit // Added this
+) {
     val sdf = remember { SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()) }
     val context = LocalContext.current
 
@@ -229,8 +240,27 @@ fun OrderRequestCard(order: OrderRequest, onAccept: () -> Unit) {
             Divider()
             Text("Order Total: ৳${order.totalPrice}", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = onAccept, modifier = Modifier.fillMaxWidth()) {
-                Text("Accept Order")
+
+            // --- UPDATED BUTTONS ---
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onCancel,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Cancel")
+                }
+                Button(
+                    onClick = onAccept,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Accept Order")
+                }
             }
         }
     }

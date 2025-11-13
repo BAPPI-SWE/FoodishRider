@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Search
@@ -130,10 +131,29 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Ongoing Delivery", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            // --- FIX: Grouped Title, Icon, and Date in a Column to avoid negative padding ---
+            Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Ongoing Delivery", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+                    IconButton(onClick = { onStatusUpdate(order.id, "Cancelled") }) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Cancel Order",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                // Date text now sits correctly under the row
                 Text(sdf.format(order.createdAt.toDate()), style = MaterialTheme.typography.bodySmall)
             }
+            // --- END OF FIX ---
+
 
             InfoRow(
                 icon = Icons.Default.Storefront,

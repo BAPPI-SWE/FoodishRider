@@ -65,7 +65,11 @@ fun MainScreen(
     ) { innerPadding ->
         NavHost(navController, startDestination = Screen.NewOrders.route, Modifier.padding(innerPadding)) {
             composable(Screen.NewOrders.route) {
-                NewOrdersScreen(onAcceptOrder = onAcceptOrder)
+                // Pass onUpdateOrderStatus to NewOrdersScreen
+                NewOrdersScreen(
+                    onAcceptOrder = onAcceptOrder,
+                    onUpdateOrderStatus = onUpdateOrderStatus
+                )
             }
             composable(Screen.MyDeliveries.route) {
                 MyDeliveriesScreen(onUpdateOrderStatus = onUpdateOrderStatus)
