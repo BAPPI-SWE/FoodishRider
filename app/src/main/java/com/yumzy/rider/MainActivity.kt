@@ -1,5 +1,7 @@
 package com.yumzy.rider
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -28,8 +30,9 @@ import com.yumzy.rider.features.history.DeliveryHistoryScreen
 import com.yumzy.rider.features.profile.RiderAccountScreen
 import com.yumzy.rider.features.profile.RiderEditProfileScreen
 import com.yumzy.rider.navigation.MainScreen
-import com.yumzy.rider.ui.theme.YumzyRiderTheme
 import com.yumzy.rider.notifications.OneSignalNotificationHelper
+import com.yumzy.rider.services.OrderMonitorService // Import your new service
+import com.yumzy.rider.ui.theme.YumzyRiderTheme
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -44,6 +47,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // --- NEW: Request Notification Permission for Android 13+ ---
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+        }
+
         setContent {
             YumzyRiderTheme {
                 val navController = rememberNavController()
@@ -96,6 +105,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("create_profile") {
+                        // Note: Ensure RiderProfileScreen is imported or available in your package
                         RiderProfileScreen(
                             onSaveProfile = { phone, vehicle, serviceableLocations ->
                                 val userId = Firebase.auth.currentUser?.uid ?: return@RiderProfileScreen
@@ -117,6 +127,11 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("main") {
+                        // --- NEW: Start the background service when entering Main screen ---
+                        LaunchedEffect(Unit) {
+                            startOrderService()
+                        }
+
                         MainScreen(
                             onAcceptOrder = { orderId ->
                                 val riderId = Firebase.auth.currentUser?.uid
@@ -209,6 +224,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onSignOut = {
                                 lifecycleScope.launch {
+                                    // --- NEW: Stop service on sign out ---
+                                    stopOrderService()
+
                                     googleAuthUiClient.signOut()
                                     navController.navigate("auth") {
                                         popUpTo(navController.graph.id) { inclusive = true }
@@ -249,6 +267,9 @@ class MainActivity : ComponentActivity() {
                             onBackClicked = { navController.popBackStack() },
                             onSignOut = {
                                 lifecycleScope.launch {
+                                    // --- NEW: Stop service on sign out ---
+                                    stopOrderService()
+
                                     googleAuthUiClient.signOut()
                                     navController.navigate("auth") {
                                         popUpTo(navController.graph.id) { inclusive = true }
@@ -274,5 +295,20 @@ class MainActivity : ComponentActivity() {
                     navController.navigate("create_profile") { popUpTo("auth") { inclusive = true } }
                 }
             }
+    }
+
+    // --- NEW: Service Helper Methods ---
+    private fun startOrderService() {
+        val serviceIntent = Intent(this, OrderMonitorService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
+    }
+
+    private fun stopOrderService() {
+        val serviceIntent = Intent(this, OrderMonitorService::class.java)
+        stopService(serviceIntent)
     }
 }
