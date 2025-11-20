@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Chat
@@ -131,7 +132,6 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // --- FIX: Grouped Title, Icon, and Date in a Column to avoid negative padding ---
             Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -149,11 +149,8 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
                     }
                 }
 
-                // Date text now sits correctly under the row
                 Text(sdf.format(order.createdAt.toDate()), style = MaterialTheme.typography.bodySmall)
             }
-            // --- END OF FIX ---
-
 
             InfoRow(
                 icon = Icons.Default.Storefront,
@@ -166,7 +163,7 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
                 primaryText = order.userName,
                 secondaryText = order.fullAddress
             )
-            // Custom Row for Contact Info with action buttons
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Phone, contentDescription = "Contact",
@@ -179,7 +176,6 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
                     Text(order.userPhone, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 }
 
-                // Call Button
                 IconButton(onClick = {
                     val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${order.userPhone}"))
                     context.startActivity(intent)
@@ -187,7 +183,6 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
                     Icon(Icons.Default.Call, contentDescription = "Call User", tint = MaterialTheme.colorScheme.primary)
                 }
 
-                // WhatsApp Button
                 IconButton(onClick = {
                     try {
                         var formattedNumber = order.userPhone.replace(Regex("[^0-9+]"), "")
@@ -213,12 +208,57 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
                     val miniResName = item["miniResName"] as? String
                     val itemName = item["itemName"] as? String ?: "Unknown"
                     val quantity = item["quantity"]
-                    val displayText = if (!miniResName.isNullOrBlank()) {
-                        "• $quantity x $itemName ($miniResName)"
-                    } else {
-                        "• $quantity x $itemName"
+                    val price = item["price"] as? Number
+                    val partnerStatus = item["partnerStatus"] as? String
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            val displayText = if (!miniResName.isNullOrBlank()) {
+                                "• $quantity x $itemName ($miniResName)"
+                            } else {
+                                "• $quantity x $itemName"
+                            }
+                            Text(displayText)
+
+                            // Show partner status badge if available
+                            if (!partnerStatus.isNullOrBlank()) {
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = when (partnerStatus) {
+                                        "Accepted" -> Color(0xFF0D47A1).copy(alpha = 0.15f)
+                                        "Ready" -> Color(0xFF2E7D32).copy(alpha = 0.15f)
+                                        else -> Color.Gray.copy(alpha = 0.15f)
+                                    },
+                                    modifier = Modifier.padding(top = 4.dp)
+                                ) {
+                                    Text(
+                                        text = partnerStatus,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = when (partnerStatus) {
+                                            "Accepted" -> Color(0xFF0D47A1)
+                                            "Ready" -> Color(0xFF2E7D32)
+                                            else -> Color.Gray
+                                        },
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+
+                        if (price != null) {
+                            Text(
+                                "৳${price.toDouble()}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                    Text(displayText)
                 }
             }
             Divider()

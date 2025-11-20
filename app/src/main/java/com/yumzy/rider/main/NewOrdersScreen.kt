@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Chat
@@ -27,7 +28,6 @@ import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.*
 
-// --- DATA CLASSES ---
 data class RiderProfile(
     val name: String = "",
     val serviceableLocations: List<String> = emptyList()
@@ -48,7 +48,7 @@ data class OrderRequest(
 @Composable
 fun NewOrdersScreen(
     onAcceptOrder: (orderId: String) -> Unit,
-    onUpdateOrderStatus: (orderId: String, newStatus: String) -> Unit // Added this
+    onUpdateOrderStatus: (orderId: String, newStatus: String) -> Unit
 ) {
     var riderProfile by remember { mutableStateOf<RiderProfile?>(null) }
     var availableOrders by remember { mutableStateOf<List<OrderRequest>>(emptyList()) }
@@ -162,7 +162,7 @@ fun NewOrdersScreen(
                     OrderRequestCard(
                         order = order,
                         onAccept = { onAcceptOrder(order.id) },
-                        onCancel = { onUpdateOrderStatus(order.id, "Cancelled") } // Pass cancel action
+                        onCancel = { onUpdateOrderStatus(order.id, "Cancelled") }
                     )
                 }
             }
@@ -174,7 +174,7 @@ fun NewOrdersScreen(
 fun OrderRequestCard(
     order: OrderRequest,
     onAccept: () -> Unit,
-    onCancel: () -> Unit // Added this
+    onCancel: () -> Unit
 ) {
     val sdf = remember { SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()) }
     val context = LocalContext.current
@@ -194,7 +194,6 @@ fun OrderRequestCard(
                 Spacer(Modifier.width(8.dp))
                 Text(order.userPhone, modifier = Modifier.weight(1f))
 
-                // Call Button
                 IconButton(onClick = {
                     val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${order.userPhone}"))
                     context.startActivity(intent)
@@ -202,7 +201,6 @@ fun OrderRequestCard(
                     Icon(Icons.Default.Call, contentDescription = "Call User", tint = MaterialTheme.colorScheme.primary)
                 }
 
-                // WhatsApp Button
                 IconButton(onClick = {
                     try {
                         var formattedNumber = order.userPhone.replace(Regex("[^0-9+]"), "")
@@ -230,18 +228,62 @@ fun OrderRequestCard(
                 val miniResName = item["miniResName"] as? String
                 val itemName = item["itemName"] as? String ?: "Unknown"
                 val quantity = item["quantity"]
-                val displayText = if (!miniResName.isNullOrBlank()) {
-                    "- $quantity x $itemName ($miniResName)"
-                } else {
-                    "- $quantity x $itemName"
+                val price = item["price"] as? Number
+                val partnerStatus = item["partnerStatus"] as? String
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        val displayText = if (!miniResName.isNullOrBlank()) {
+                            "- $quantity x $itemName ($miniResName)"
+                        } else {
+                            "- $quantity x $itemName"
+                        }
+                        Text(displayText)
+
+                        // Show partner status badge if available
+                        if (!partnerStatus.isNullOrBlank()) {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = when (partnerStatus) {
+                                    "Accepted" -> Color(0xFF0D47A1).copy(alpha = 0.15f)
+                                    "Ready" -> Color(0xFF2E7D32).copy(alpha = 0.15f)
+                                    else -> Color.Gray.copy(alpha = 0.15f)
+                                },
+                                modifier = Modifier.padding(top = 4.dp)
+                            ) {
+                                Text(
+                                    text = partnerStatus,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = when (partnerStatus) {
+                                        "Accepted" -> Color(0xFF0D47A1)
+                                        "Ready" -> Color(0xFF2E7D32)
+                                        else -> Color.Gray
+                                    },
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    if (price != null) {
+                        Text(
+                            "৳${price.toDouble()}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-                Text(displayText)
             }
             Divider()
             Text("Order Total: ৳${order.totalPrice}", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
 
-            // --- UPDATED BUTTONS ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
