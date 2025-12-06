@@ -1,8 +1,8 @@
-# Yumzy Rider App
+# Foodish Rider App
 
-This application is for delivery riders to manage their availability, view new jobs, and handle active orders within the Yumzy ecosystem.
+This application is for delivery riders to manage their availability, view new jobs, and handle active orders within the Foodish ecosystem.
 
-> **For a full overview of the entire 3-app ecosystem (including the User and Partner apps), please see the [main project repository](https://github.com/your-username/Yumzy-Food-Delivery-Ecosystem).**
+> **For a full overview of the entire 3-app ecosystem (including the User and Partner apps), please see the [main project repository](https://github.com/BAPPI-SWE/FOODISH).**
 > *(Note: Remember to replace the link above with the link to your new overview repository!)*
 
 ## 🚀 Key Features
