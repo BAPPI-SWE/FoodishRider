@@ -38,6 +38,7 @@ data class Order(
     val userPhone: String = "",
     val fullAddress: String = "",
     val totalPrice: Double = 0.0,
+    val payment: String = "Online", // New Field
     val items: List<Map<String, Any>> = emptyList(),
     val createdAt: Timestamp = Timestamp.now()
 )
@@ -224,7 +225,6 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
                             }
                             Text(displayText)
 
-                            // Show partner status badge if available
                             if (!partnerStatus.isNullOrBlank()) {
                                 Surface(
                                     shape = RoundedCornerShape(4.dp),
@@ -266,8 +266,10 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // Updated Total Section
+                val paymentText = if (order.payment == "COD") "(COD)" else "(Online)"
                 Text("Order Total:", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                Text("৳${order.totalPrice}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                Text("৳${order.totalPrice} $paymentText", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
             }
             Row(
                 modifier = Modifier

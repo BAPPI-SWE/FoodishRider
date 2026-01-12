@@ -23,7 +23,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.yumzy.rider.main.Order // Re-using the Order data class from MyDeliveriesScreen
+import com.yumzy.rider.main.Order
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -51,11 +51,9 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
         ).show()
     }
 
-    // Filter orders based on search and date range
     val filteredOrders by remember(searchText, completedOrders, startDate, endDate) {
         derivedStateOf {
             val calendar = Calendar.getInstance()
-
             val startMillis = startDate?.let {
                 calendar.timeInMillis = it
                 calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -64,7 +62,6 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
                 calendar.set(Calendar.MILLISECOND, 0)
                 calendar.timeInMillis
             }
-
             val endMillis = endDate?.let {
                 calendar.timeInMillis = it
                 calendar.set(Calendar.HOUR_OF_DAY, 23)
@@ -75,13 +72,8 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
             }
 
             var orders = completedOrders
-
-            if (startMillis != null) {
-                orders = orders.filter { it.createdAt.toDate().time >= startMillis }
-            }
-            if (endMillis != null) {
-                orders = orders.filter { it.createdAt.toDate().time <= endMillis }
-            }
+            if (startMillis != null) orders = orders.filter { it.createdAt.toDate().time >= startMillis }
+            if (endMillis != null) orders = orders.filter { it.createdAt.toDate().time <= endMillis }
 
             if (searchText.isNotBlank()) {
                 orders.filter { order ->
@@ -90,29 +82,25 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
                             order.fullAddress.contains(searchText, ignoreCase = true) ||
                             order.restaurantName.contains(searchText, ignoreCase = true)
                 }
-            } else {
-                orders
-            }
+            } else orders
         }
     }
 
-    // Calculate totals based on the filtered list
+    // New logic for calculating broken-down totals
     val totalDeliveries = filteredOrders.size
     val totalEarnings = filteredOrders.sumOf { it.totalPrice }
+    val codEarnings = filteredOrders.filter { it.payment == "COD" }.sumOf { it.totalPrice }
+    val onlineEarnings = filteredOrders.filter { it.payment != "COD" }.sumOf { it.totalPrice }
 
-
-    // This effect fetches the delivered orders for the current rider from Firestore
     LaunchedEffect(key1 = Unit) {
         val riderId = Firebase.auth.currentUser?.uid ?: return@LaunchedEffect
         Firebase.firestore.collection("orders")
             .whereEqualTo("riderId", riderId)
             .whereEqualTo("orderStatus", "Delivered")
-            .orderBy("createdAt", Query.Direction.DESCENDING) // Show most recent orders first
+            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 isLoading = false
-                if (error != null) {
-                    return@addSnapshotListener
-                }
+                if (error != null) return@addSnapshotListener
                 snapshot?.let {
                     completedOrders = it.documents.mapNotNull { doc ->
                         val address = "Building: ${doc.getString("building")}, Floor: ${doc.getString("floor")}, Room: ${doc.getString("room")}\n${doc.getString("userSubLocation")}, ${doc.getString("userBaseLocation")}"
@@ -160,39 +148,28 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
                 Button(onClick = { showDatePicker { endDate = it } }, modifier = Modifier.weight(1f)) {
                     Text(endDate?.let { SimpleDateFormat("dd MMM yy", Locale.getDefault()).format(Date(it)) } ?: "End Date")
                 }
-                TextButton(onClick = {
-                    startDate = null
-                    endDate = null
-                }) {
-                    Text("Clear")
-                }
+                TextButton(onClick = { startDate = null; endDate = null }) { Text("Clear") }
             }
             Spacer(modifier = Modifier.height(16.dp))
 
             if (isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             } else if (completedOrders.isEmpty() && searchText.isBlank()){
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("You have no completed deliveries yet.", color = Color.Gray)
-                }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("No completed deliveries yet.", color = Color.Gray) }
             }
             else {
-                // Show summary only if there are orders to display
+                // Pass new parameters to SummaryCard
                 SummaryCard(
                     totalDeliveries = totalDeliveries,
-                    totalEarnings = totalEarnings
+                    totalEarnings = totalEarnings,
+                    codEarnings = codEarnings,
+                    onlineEarnings = onlineEarnings
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (filteredOrders.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        val emptyText = when {
-                            searchText.isNotBlank() -> "No deliveries found for \"$searchText\""
-                            else -> "No deliveries found in the selected date range."
-                        }
-                        Text(emptyText, color = Color.Gray)
+                        Text("No deliveries found.", color = Color.Gray)
                     }
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -206,120 +183,73 @@ fun DeliveryHistoryScreen(onBackClicked: () -> Unit) {
     }
 }
 
-/**
- * A card to display the summary of total deliveries and earnings.
- */
 @Composable
-fun SummaryCard(totalDeliveries: Int, totalEarnings: Double) {
+fun SummaryCard(totalDeliveries: Int, totalEarnings: Double, codEarnings: Double, onlineEarnings: Double) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Total Deliveries",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = totalDeliveries.toString(),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
+        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Total Orders", style = MaterialTheme.typography.bodySmall)
+                    Text(totalDeliveries.toString(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Total Earnings", style = MaterialTheme.typography.bodySmall)
+                    Text("৳${"%.2f".format(totalEarnings)}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                }
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Total Earnings",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "৳${"%.2f".format(totalEarnings)}",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Collected (COD)", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("৳${"%.1f".format(codEarnings)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Online Paid", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("৳${"%.1f".format(onlineEarnings)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                }
             }
         }
     }
 }
 
-
 @Composable
 fun CompletedDeliveryCard(order: Order) {
     val sdf = remember { SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()) }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            InfoRow(
-                icon = Icons.Default.Storefront,
-                title = "PICKED UP FROM",
-                primaryText = order.restaurantName
-            )
-            InfoRow(
-                icon = Icons.Default.Home,
-                title = "DELIVERED TO",
-                primaryText = order.userName,
-                secondaryText = order.fullAddress
-            )
-            InfoRow(
-                icon = Icons.Default.Phone,
-                title = "CUSTOMER CONTACT",
-                primaryText = order.userPhone
-            )
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            InfoRow(Icons.Default.Storefront, "PICKED UP FROM", order.restaurantName)
+            InfoRow(Icons.Default.Home, "DELIVERED TO", order.userName, order.fullAddress)
+            InfoRow(Icons.Default.Phone, "CUSTOMER CONTACT", order.userPhone)
 
             Divider()
-
             Text("Items:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Column(modifier = Modifier.padding(start = 16.dp)) {
                 order.items.forEach { item ->
-                    val miniResName = item["miniResName"] as? String
                     val itemName = item["itemName"] as? String ?: "Unknown"
                     val quantity = item["quantity"]
-                    val displayText = if (!miniResName.isNullOrBlank()) {
-                        "• $quantity x $itemName ($miniResName)"
-                    } else {
-                        "• $quantity x $itemName"
-                    }
-                    Text(displayText)
+                    Text("• $quantity x $itemName")
                 }
             }
-
             Divider()
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                val paymentText = if (order.payment == "COD") "(COD)" else "(Online)"
                 Text("Order Total:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("৳${order.totalPrice}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text("৳${order.totalPrice} $paymentText", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
-
             Divider(modifier = Modifier.padding(vertical = 4.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Delivered on ${sdf.format(order.createdAt.toDate())}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text("Delivered on ${sdf.format(order.createdAt.toDate())}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
         }
     }
@@ -328,14 +258,7 @@ fun CompletedDeliveryCard(order: Order) {
 @Composable
 fun InfoRow(icon: ImageVector, title: String, primaryText: String, secondaryText: String? = null) {
     Row(verticalAlignment = Alignment.Top) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .size(20.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Icon(imageVector = icon, contentDescription = title, modifier = Modifier.padding(top = 4.dp).size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.width(16.dp))
         Column {
             Text(title, style = MaterialTheme.typography.labelMedium, color = Color.Gray)

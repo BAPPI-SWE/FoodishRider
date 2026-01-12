@@ -42,6 +42,7 @@ data class OrderRequest(
     val fullAddress: String = "",
     val userPhone: String = "",
     val userBaseLocation: String = "",
+    val payment: String = "Online", // New Field
     val createdAt: Timestamp = Timestamp.now()
 )
 
@@ -90,6 +91,7 @@ fun NewOrdersScreen(
                         .addSnapshotListener { snapshot, _ ->
                             snapshot?.let {
                                 availableOrders = it.documents.mapNotNull { orderDoc ->
+                                    // Fixed: Removed the syntax error in address mapping
                                     val address = "Building: ${orderDoc.getString("building")}, Floor: ${orderDoc.getString("floor")}, Room: ${orderDoc.getString("room")}\n${orderDoc.getString("userSubLocation")}, ${orderDoc.getString("userBaseLocation")}"
                                     orderDoc.toObject(OrderRequest::class.java)?.copy(
                                         id = orderDoc.id,
@@ -244,7 +246,6 @@ fun OrderRequestCard(
                         }
                         Text(displayText)
 
-                        // Show partner status badge if available
                         if (!partnerStatus.isNullOrBlank()) {
                             Surface(
                                 shape = RoundedCornerShape(4.dp),
@@ -281,7 +282,14 @@ fun OrderRequestCard(
                 }
             }
             Divider()
-            Text("Order Total: ৳${order.totalPrice}", fontWeight = FontWeight.Bold)
+
+            // Payment Status Display
+            val paymentText = if (order.payment == "COD") "(COD)" else "(Online)"
+            Text(
+                text = "Order Total: ৳${order.totalPrice} $paymentText",
+                fontWeight = FontWeight.Bold
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
