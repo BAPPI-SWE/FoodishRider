@@ -110,7 +110,7 @@ class OrderMonitorService : Service() {
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         return NotificationCompat.Builder(this, CHANNEL_ID_FOREGROUND)
-            .setContentTitle("Yumzy Rider Active")
+            .setContentTitle("Foodish Rider Active")
             .setContentText("Searching for new orders...")
             .setSmallIcon(R.mipmap.ic_launcher_round)
             .setContentIntent(pendingIntent)

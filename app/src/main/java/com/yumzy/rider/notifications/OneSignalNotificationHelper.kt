@@ -60,7 +60,7 @@ object OneSignalNotificationHelper {
                 }
                 "Delivered" -> {
                     headingText = "Your Order Delivered 🥳"
-                    contentText = "Your order from $restaurantName is now Delivered.\nThanks for Using Yumzy💗"
+                    contentText = "Your order from $restaurantName is now Delivered.\nThanks for Using Foodish💗"
                 }
                 else -> {
                     headingText = "Order Status Update"
