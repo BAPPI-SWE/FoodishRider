@@ -16,7 +16,8 @@ import org.json.JSONObject
 object OneSignalNotificationHelper {
     private const val ONE_SIGNAL_APP_ID = "dabb9362-80ed-4e54-be89-32ffc7dbf383"
     // Use your REST API Key from OneSignal dashboard (Settings → Keys & IDs)
-    private const val ONE_SIGNAL_REST_API_KEY = "os_v2_app_3k5zgyua5vhfjpujgl74pw7tqphjoswaqgweyqvdhmcb7zzdro4hoy4ddqe55tmhceeh2s26jcr4r3xycmir6v6xlsywzrpjzor4mhy"
+    private const val ONE_SIGNAL_REST_API_KEY = "os_v2_app_3k5zgyua5vhfjpujgl74pw7tqmiktp2boauu6mfv2jy2uzkby4dlytf4grj6snhhm6e6pgy5ia3fb6wodbr2y372dcpd72uy3fuuoda"
+
     private const val ONE_SIGNAL_API_URL = "https://onesignal.com/api/v1/notifications"
     private val client = OkHttpClient()
 
