@@ -7,6 +7,43 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:1096387078386:android:e94cd25a24db440966886b",
+        "android_client_info": {
+          "package_name": "com.yumzy.admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1096387078386-0f6ve826or9s3q38lfuqh6r31rd4k6tj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yumzy.admin",
+            "certificate_hash": "7a2aa757606b1fa1d109eb5823d103168ab7192e"
+          }
+        },
+        {
+          "client_id": "1096387078386-j39cmg6m1k70u42ff20hf5t2j30valeg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsDDt8kb43yFMbEO3ixhEwuBm3jPmayWY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1096387078386-j39cmg6m1k70u42ff20hf5t2j30valeg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:1096387078386:android:a909f0578eabb7ed66886b",
         "android_client_info": {
           "package_name": "com.yumzy.partner"
@@ -18,6 +55,43 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.yumzy.partner",
+            "certificate_hash": "7a2aa757606b1fa1d109eb5823d103168ab7192e"
+          }
+        },
+        {
+          "client_id": "1096387078386-j39cmg6m1k70u42ff20hf5t2j30valeg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsDDt8kb43yFMbEO3ixhEwuBm3jPmayWY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1096387078386-j39cmg6m1k70u42ff20hf5t2j30valeg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1096387078386:android:41d06ae816698ed066886b",
+        "android_client_info": {
+          "package_name": "com.yumzy.restaurant"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1096387078386-8ihokgqua3fkt50899pabu32l4is3ah3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yumzy.restaurant",
             "certificate_hash": "7a2aa757606b1fa1d109eb5823d103168ab7192e"
           }
         },
@@ -81,6 +155,35 @@
     },
     {
       "client_info": {
+        "mobilesdk_app_id": "1:1096387078386:android:ea84d8bfcbc1596866886b",
+        "android_client_info": {
+          "package_name": "com.yumzy.riderapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1096387078386-j39cmg6m1k70u42ff20hf5t2j30valeg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsDDt8kb43yFMbEO3ixhEwuBm3jPmayWY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1096387078386-j39cmg6m1k70u42ff20hf5t2j30valeg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:1096387078386:android:716971a45beac84866886b",
         "android_client_info": {
           "package_name": "com.yumzy.userapp"
@@ -88,11 +191,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "1096387078386-hvou3hu0lf2kfge3jin7jfuagi3udcpa.apps.googleusercontent.com",
+          "client_id": "1096387078386-7t9qng84k1n7uqvfhudclclh6c6n1dv8.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.yumzy.userapp",
-            "certificate_hash": "7a2aa757606b1fa1d109eb5823d103168ab7192e"
+            "certificate_hash": "4ba8a89f88886826d6dac57900f29e9438cff115"
           }
         },
         {

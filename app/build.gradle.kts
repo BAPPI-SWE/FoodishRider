@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.yumzy.rider"
+    namespace = "com.yumzy.riderapp"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.yumzy.rider"
+        applicationId = "com.yumzy.riderapp"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
