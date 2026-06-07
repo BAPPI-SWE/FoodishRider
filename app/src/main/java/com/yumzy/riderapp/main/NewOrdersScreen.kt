@@ -42,7 +42,8 @@ data class OrderRequest(
     val fullAddress: String = "",
     val userPhone: String = "",
     val userBaseLocation: String = "",
-    val payment: String = "Online", // New Field
+    val payment: String = "Online",
+    val note: String = "",
     val createdAt: Timestamp = Timestamp.now()
 )
 
@@ -209,7 +210,8 @@ fun OrderRequestCard(
     Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(order.restaurantName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(order.restaurantName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                NoteIconButton(orderId = order.id, existingNote = order.note)
                 Text(sdf.format(order.createdAt.toDate()), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
             Divider()

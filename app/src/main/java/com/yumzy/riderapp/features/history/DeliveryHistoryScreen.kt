@@ -24,6 +24,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.yumzy.riderapp.main.Order
+import com.yumzy.riderapp.main.NoteIconButton
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -228,6 +229,19 @@ fun CompletedDeliveryCard(order: Order) {
 
     Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Delivered on ${sdf.format(order.createdAt.toDate())}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    modifier = Modifier.weight(1f)
+                )
+                NoteIconButton(orderId = order.id, existingNote = order.note)
+            }
             InfoRow(Icons.Default.Storefront, "PICKED UP FROM", order.restaurantName)
             InfoRow(Icons.Default.Home, "DELIVERED TO", order.userName, order.fullAddress)
             InfoRow(Icons.Default.Phone, "CUSTOMER CONTACT", order.userPhone)
@@ -248,9 +262,6 @@ fun CompletedDeliveryCard(order: Order) {
                 Text("৳${order.totalPrice} $paymentText", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
             Divider(modifier = Modifier.padding(vertical = 4.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text("Delivered on ${sdf.format(order.createdAt.toDate())}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-            }
         }
     }
 }

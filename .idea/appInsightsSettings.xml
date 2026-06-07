@@ -22,10 +22,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.yumzy.riderapp" />
+                  <option name="mobileSdkAppId" value="1:1096387078386:android:ea84d8bfcbc1596866886b" />
+                  <option name="projectId" value="yumzy-bappi" />
+                  <option name="projectNumber" value="1096387078386" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

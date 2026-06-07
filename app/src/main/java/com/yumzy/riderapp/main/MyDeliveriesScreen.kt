@@ -38,7 +38,8 @@ data class Order(
     val userPhone: String = "",
     val fullAddress: String = "",
     val totalPrice: Double = 0.0,
-    val payment: String = "Online", // New Field
+    val payment: String = "Online",
+    val note: String = "",
     val items: List<Map<String, Any>> = emptyList(),
     val createdAt: Timestamp = Timestamp.now()
 )
@@ -166,12 +167,15 @@ fun ActiveDeliveryCard(order: Order, onStatusUpdate: (orderId: String, newStatus
                 ) {
                     Text("Ongoing Delivery", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-                    IconButton(onClick = { showCancelDialog = true }) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Cancel Order",
-                            tint = MaterialTheme.colorScheme.error
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        NoteIconButton(orderId = order.id, existingNote = order.note)
+                        IconButton(onClick = { showCancelDialog = true }) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Cancel Order",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
 
